@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keylogger Dashboard - Educativo</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .warning {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #3498db;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card h3 {
+            color: #2c3e50;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .charts-section {
+            padding: 0 30px 30px;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .chart-title {
+            color: #2c3e50;
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .events-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .events-table th,
+        .events-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .events-table th {
+            background: #f8f9fa;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .event-type-keypress {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .event-type-mouse {
+            color: #e67e22;
+            font-weight: bold;
+        }
+        
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .loading {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 20px;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Keylogger Dashboard</h1>
+            <p>Monitor educativo de actividad del sistema</p>
+        </div>
+        
+        <div class="warning">
+            ⚠️ AVISO: Este dashboard es únicamente para fines educativos y uso en sistemas propios
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>📊 Total de Eventos</h3>
+                <div class="stat-value" id="totalEvents">-</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>⌨️ Teclas Presionadas</h3>
+                <div class="stat-value" id="keyPresses">-</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>🖱️ Clicks de Mouse</h3>
+                <div class="stat-value" id="mouseClicks">-</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>🪟 Ventanas Únicas</h3>
+                <div class="stat-value" id="uniqueWindows">-</div>
+            </div>
+        </div>
+        
+        <div class="charts-section">
+            <div class="chart-container">
+                <h3 class="chart-title">📈 Actividad por Hora (Últimas 24h)</h3>
+                <canvas id="activityChart" width="400" height="200"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">📋 Eventos Recientes</h3>
+                <div id="eventsTableContainer">
+                    <div class="loading">Cargando eventos...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button class="refresh-btn" onclick="refreshData()">
+        🔄 Actualizar
+    </button>
+    
+    <script>
+        let activityChart;
+        
+        // Función para cargar estadísticas
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                
+                document.getElementById('totalEvents').textContent = stats.total_events || 0;
+                document.getElementById('keyPresses').textContent = stats.keypress_count || 0;
+                document.getElementById('mouseClicks').textContent = stats.mouse_count || 0;
+                document.getElementById('uniqueWindows').textContent = stats.unique_windows || 0;
+                
+                // Actualizar gráfico de actividad
+                updateActivityChart(stats.events_by_hour || {});
+                
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+            }
+        }
+        
+        // Función para actualizar gráfico de actividad
+        function updateActivityChart(eventsData) {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            
+            // Generar horas del día
+            const hours = [];
+            const counts = [];
+            
+            for (let i = 0; i < 24; i++) {
+                const hourStr = `${i.toString().padStart(2, '0')}:00`;
+                hours.push(hourStr);
+                counts.push(eventsData[hourStr] || 0);
+            }
+            
+            if (activityChart) {
+                activityChart.destroy();
+            }
+            
+            activityChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: hours,
+                    datasets: [{
+                        label: 'Eventos por Hora',
+                        data: counts,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Eventos'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Hora del Día'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Función para cargar eventos recientes
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/events?limit=20');
+                const events = await response.json();
+                
+                const container = document.getElementById('eventsTableContainer');
+                
+                if (events.length === 0) {
+                    container.innerHTML = '<div class="loading">No hay eventos registrados</div>';
+                    return;
+                }
+                
+                let tableHtml = `
+                    <table class="events-table">
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Tipo</th>
+                                <th>Datos</th>
+                                <th>Ventana</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                events.reverse().forEach(event => {
+                    const time = new Date(event.timestamp).toLocaleTimeString();
+                    const typeClass = event.type === 'keypress' ? 'event-type-keypress' : 'event-type-mouse';
+                    const data = typeof event.data === 'object' ? 
+                        `${event.data.button || ''} (${event.data.x || 0}, ${event.data.y || 0})` : 
+                        event.data;
+                    
+                    tableHtml += `
+                        <tr>
+                            <td>${time}</td>
+                            <td><span class="${typeClass}">${event.type.toUpperCase()}</span></td>
+                            <td>${data}</td>
+                            <td>${event.window || 'N/A'}</td>
+                        </tr>
+                    `;
+                });
+                
+                tableHtml += '</tbody></table>';
+                container.innerHTML = tableHtml;
+                
+            } catch (error) {
+                console.error('Error cargando eventos:', error);
+                document.getElementById('eventsTableContainer').innerHTML = 
+                    '<div class="loading">Error cargando eventos</div>';
+            }
+        }
+        
+        // Función para refrescar todos los datos
+        function refreshData() {
+            loadStats();
+            loadEvents();
+        }
+        
+        // Cargar datos iniciales
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshData();
+            
+            // Auto-refresh cada 30 segundos
+            setInterval(refreshData, 30000);
+        });
+    </script>
+</body>
+</html>
