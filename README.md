@@ -12,7 +12,7 @@
 ## 🎯 **Características Principales**
 
 ### 🔥 **IP Pública Real**
-- ❌ **NO** muestra IPs locales inútiles (`192.168.1.x`)
+- ❌ **NO** muestra IPs locales inútiles
 - ✅ **SÍ** muestra la **IP pública real** de cada máquina (`198.12.34.56`)
 - 🌍 Permite geolocalización e identificación única
 
@@ -87,7 +87,7 @@ keylogger-educativo/
 
 ### 1. Clonar el Repositorio
 ```bash
-git clone https://github.com/tu-usuario/keylogger-educativo.git
+git clone https://github.com/Alvaro-Manzo/keylogger-educativo.git
 cd keylogger-educativo
 ```
 
